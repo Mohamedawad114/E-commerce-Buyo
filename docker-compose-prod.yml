@@ -9,7 +9,7 @@ services:
     build:
       context: .
       target: prod
-    image: moawad114/buyo-app:tag   # مهم لو هتستخدم repo
+    image: moawad114/buyo-app   # مهم لو هتستخدم repo
 
     ports:
       - "5000:3000"
