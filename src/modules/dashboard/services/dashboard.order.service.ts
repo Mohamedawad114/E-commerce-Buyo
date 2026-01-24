@@ -7,9 +7,17 @@ import {
 import { InjectConnection } from '@nestjs/mongoose';
 import dayjs from 'dayjs';
 import { Connection, Types } from 'mongoose';
-import { Crypto, IOrder, Order_Repo, orderStatus, redis } from 'src/common';
+import {
+  Crypto,
+  IOrder,
+  notificationHandler,
+  NotificationRepo,
+  Order_Repo,
+  orderStatus,
+  redis,
+} from 'src/common';
+import { realTimeGateway } from 'src/modules/Gateway/gateway';
 import { StripeCheckoutStrategy } from 'src/modules/payment/strategies/stripe.strategy';
-import { types } from 'util';
 
 @Injectable()
 export class Dashboard_order_service {
@@ -17,6 +25,8 @@ export class Dashboard_order_service {
     private readonly orderRepo: Order_Repo,
     private readonly paymentService: StripeCheckoutStrategy,
     private readonly crypto: Crypto,
+    private readonly realTimeGateway: realTimeGateway,
+    private readonly notificationRepo: NotificationRepo,
     @InjectConnection() private readonly connection: Connection,
   ) {}
 
@@ -143,6 +153,16 @@ export class Dashboard_order_service {
       );
       await session.commitTransaction();
       session.endSession();
+      const notification = await this.notificationRepo.createDocument({
+        userId: order.userId,
+        title: notificationHandler('order_paid', {
+          orderId: order.orderId,
+        }).title,
+        content: notificationHandler('order_paid', {
+          orderId: order.orderId,
+        }).content,
+      });
+      this.realTimeGateway.sendNotification(order.userId, notification);
     } catch (err) {
       await session.abortTransaction();
       session.endSession();

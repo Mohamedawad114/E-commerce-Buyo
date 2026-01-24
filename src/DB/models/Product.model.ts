@@ -1,7 +1,7 @@
 import { MongooseModule, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import slugify from 'slugify';
-import { IProduct } from 'src/common';
+import { calcSalePrice, IProduct } from 'src/common';
 
 @Schema({ strict: true, timestamps: true, autoIndex: false })
 export class Product implements IProduct {
@@ -94,9 +94,7 @@ ProductSchema.pre(['updateOne', 'findOneAndUpdate'], async function () {
     this.set({ slug: slugify(set.name, { lower: true }) });
   }
 });
-function calcSalePrice(originalprice: number, discountPercent: number) {
-  return Math.round(originalprice - originalprice * (discountPercent / 100));
-}
+
 
 export const ProductModel = MongooseModule.forFeature([
   { schema: ProductSchema, name: Product.name },

@@ -10,6 +10,8 @@ import {
   currency,
   EmailProducer,
   IUser,
+  notificationHandler,
+  NotificationRepo,
   Order_Repo,
   orderStatus,
   paymentType,
@@ -19,6 +21,7 @@ import { Types } from 'mongoose';
 import { couponDocument, ProductDocument, UserDocument } from 'src/DB';
 import Stripe from 'stripe';
 import { Request } from 'express';
+import { realTimeGateway } from '../Gateway/gateway';
 
 @Injectable()
 export class Payment_services {
@@ -26,6 +29,8 @@ export class Payment_services {
     private readonly paymentStrategy: StripeCheckoutStrategy,
     private readonly orderRepo: Order_Repo,
     private readonly emailQueue: EmailProducer,
+    private readonly realTimeGateway: realTimeGateway,
+    private readonly notificationRepo: NotificationRepo,
   ) {}
   async cheackout(orderId: Types.ObjectId, user: IUser, key: string) {
     if (!key) throw new BadRequestException('idempotency key is requires');
@@ -55,14 +60,13 @@ export class Payment_services {
       )
         couponData.percent_off = order.discount * 100;
       else couponData.amount_off = order.discountAmount * 100;
-
       const Coupon = await this.paymentStrategy.createCoupon(couponData);
       discounts.push({ coupon: Coupon.id });
     }
     const session = await this.paymentStrategy.startPayment({
       customer_email: user.email,
       mode: 'payment',
-      metadata: { orderId: order._id.toString() },
+      metadata: { orderId: order._id.toString(), userId: user._id.toString() },
       discounts: discounts,
       line_items: order.products.map((p) => {
         return {
@@ -88,8 +92,9 @@ export class Payment_services {
   }
   async webhook(req: Request) {
     const event = await this.paymentStrategy.webhook(req);
-    const { orderId } = event.data.object.metadata as {
+    const { orderId, userId } = event.data.object.metadata as {
       orderId: string;
+      userId: string;
     };
     const order = await this.orderRepo.findOneDocumentAndUpdate(
       {
@@ -111,6 +116,19 @@ export class Payment_services {
       },
     );
     if (!order) return { data: { ignored: true } };
+    const notification = await this.notificationRepo.createDocument({
+      userId: new Types.ObjectId(userId),
+      title: notificationHandler('order_paid', {
+        orderId: order.orderId,
+      }).title,
+      content: notificationHandler('order_paid', {
+        orderId: order.orderId,
+      }).content,
+    });
+    this.realTimeGateway.sendNotification(
+      new Types.ObjectId(userId),
+      notification,
+    );
     await redis.sadd(`paid_orders`, order._id.toString());
     await redis.srem(`pending_orders`, order._id.toString());
     await this.emailQueue.sendEmailJob(

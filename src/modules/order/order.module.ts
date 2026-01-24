@@ -1,15 +1,17 @@
 import { Module } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
-import { cartModel, couponModel, orderModel, ProductModel } from 'src/DB';
+import { cartModel, couponModel, notificationModel, orderModel, ProductModel } from 'src/DB';
 import {
   Cart_Repo,
   commonModule,
   Coupon_Repo,
   Crypto,
+  NotificationRepo,
   Order_Repo,
   productRepo,
 } from 'src/common';
+import { realTimeGateway } from '../Gateway/gateway';
 
 @Module({
   controllers: [OrderController],
@@ -20,7 +22,9 @@ import {
     Order_Repo,
     Coupon_Repo,
     Crypto,
+    realTimeGateway,
+    NotificationRepo,
   ],
-  imports: [orderModel, ProductModel, cartModel, commonModule, couponModel],
+  imports: [orderModel, ProductModel, cartModel, commonModule, couponModel, notificationModel],
 })
 export class OrderModule {}

@@ -24,6 +24,7 @@ import {
 } from './Dto';
 import { Connection, Types } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
+import { realTimeGateway } from '../Gateway/gateway';
 
 @Injectable()
 export class Product_Servcies {
@@ -35,6 +36,7 @@ export class Product_Servcies {
     private readonly wishlistRepo: Wishlist_Repo,
     private readonly reviewRepo: ReviewRepo,
     private readonly cartRepo: Cart_Repo,
+    private readonly realTimeGateway: realTimeGateway,
     @InjectConnection() private readonly connection: Connection,
   ) {}
 
@@ -147,9 +149,8 @@ export class Product_Servcies {
           : Sort === 'rating'
             ? { rateAvg: -1 }
             : { createdAt: -1 };
-    console.log(categoryId)
     const products = await this.ProductRepo.findDocuments(
-      {CategoryId: category._id, BrandId: brand._id, isActive: true },
+      { CategoryId: category._id, BrandId: brand._id, isActive: true },
       {
         descripation: 0,
         productImgs: { $slice: 1 },
@@ -194,7 +195,7 @@ export class Product_Servcies {
         CategoryId: { $nin: deActiveCategories },
         BrandId: { $nin: deActiveBrands },
       },
-      {  productImgs: { $slice: 1 } },
+      { productImgs: { $slice: 1 } },
       { limit: limit, skip: offset, sort: { createdAt: -1 } },
     );
     const total = await this.ProductRepo.countDocuments({
@@ -243,6 +244,10 @@ export class Product_Servcies {
   updateProduct = async (Dto: UpdateProductDto, productId: Types.ObjectId) => {
     const product = await this.ProductRepo.findByIdDocument(productId);
     if (!product) throw new NotFoundException(`product not found`);
+    if (Dto.stock)
+      this.realTimeGateway.changeProductStock([
+        { productId: productId, newStock: Dto.stock },
+      ]);
     if (!Dto.CategoryId && !Dto.BrandId) {
       const updated = await this.ProductRepo.findAndUpdateDocument(productId, {
         ...Dto,

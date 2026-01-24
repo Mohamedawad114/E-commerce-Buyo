@@ -9,9 +9,11 @@ import {
   ResponseInterceptor,
   TimeoutInterceptor,
 } from './common';
+import { SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 import * as express from 'express';
+import { swaggerConfig } from 'swagger.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -29,6 +31,8 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new GlobalErrorFilter());
 
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document);
   logger.info(`server is runnung... on 3000`);
   await app.listen(process.env.PORT ?? 3000);
 }

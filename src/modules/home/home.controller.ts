@@ -1,14 +1,15 @@
 import { Controller, Get } from '@nestjs/common';
-
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Home_Services } from './home.service';
 
-
-@Controller("/")
+@ApiTags('Home')
+@Controller('/')
 export class HomeController {
   constructor(private readonly HomeServices: Home_Services) {}
 
-  @Get()
+  @Get('')
+  @ApiOperation({ summary: 'Get home page data' }) // وصف العملية
   HomeData() {
-    return  this.HomeServices.getHomeData();
+    return this.HomeServices.getHomeData();
   }
 }

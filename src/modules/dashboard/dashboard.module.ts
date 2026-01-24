@@ -4,6 +4,7 @@ import {
   commonModule,
   Crypto,
   EmailModule,
+  NotificationRepo,
   Order_Repo,
   productRepo,
   UserRepo,
@@ -19,8 +20,15 @@ import {
   Dashboard_user_Controller,
 } from './controllers';
 
-import { categoryModel, orderModel, ProductModel, UserModel } from 'src/DB';
+import {
+  categoryModel,
+  notificationModel,
+  orderModel,
+  ProductModel,
+  UserModel,
+} from 'src/DB';
 import { StripeCheckoutStrategy } from '../payment/strategies/stripe.strategy';
+import { realTimeGateway } from '../Gateway/gateway';
 
 @Module({
   imports: [
@@ -30,6 +38,7 @@ import { StripeCheckoutStrategy } from '../payment/strategies/stripe.strategy';
     orderModel,
     UserModel,
     categoryModel,
+    notificationModel,
   ],
   providers: [
     Crypto,
@@ -41,7 +50,8 @@ import { StripeCheckoutStrategy } from '../payment/strategies/stripe.strategy';
     Dashboard_user_service,
     Dashboard_product_services,
     Dashboard_order_service,
-
+    realTimeGateway,
+    NotificationRepo,
   ],
   controllers: [
     Dashboard_user_Controller,

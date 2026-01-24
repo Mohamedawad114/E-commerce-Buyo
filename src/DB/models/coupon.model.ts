@@ -45,7 +45,7 @@ export class Coupon implements ICoupon {
     validate: {
       validator: function (this: Coupon, value: number) {
         if (this.type === CouponType.percent) {
-          return value > 0 && value <= 100;
+          return value > 0 && value <= 50;
         }
         return value > 0;
       },

@@ -24,7 +24,7 @@ import { resolve } from 'path';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EmailModule, OrderSheduleModule, redis } from './common';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD, RouterModule } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -52,14 +52,9 @@ import { APP_GUARD, RouterModule } from '@nestjs/core';
         limit: 4000,
       },
     ]),
+
     ScheduleModule.forRoot(),
     HomeModule,
-    // RouterModule.register([
-    //   {
-    //     path:'',
-    //     module: HomeModule,
-    //   },
-    // ]),
     EmailModule,
     OrderSheduleModule,
     AuthModule,

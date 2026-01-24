@@ -14,6 +14,8 @@ import {
   getSecondsUntilEndOfDay,
   IorderProduct,
   IUser,
+  notificationHandler,
+  NotificationRepo,
   Order_Repo,
   orderStatus,
   productRepo,
@@ -22,6 +24,7 @@ import {
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection, Types } from 'mongoose';
 import { randomUUID } from 'crypto';
+import { realTimeGateway } from '../Gateway/gateway';
 
 @Injectable()
 export class OrderService {
@@ -31,6 +34,8 @@ export class OrderService {
     private readonly couponRepo: Coupon_Repo,
     private readonly productRepo: productRepo,
     private readonly crypto: Crypto,
+    private readonly realTimeGateway: realTimeGateway,
+    private readonly notificationRepo: NotificationRepo,
     @InjectConnection() private connection: Connection,
   ) {}
   async create(Dto: CreateOrderDto, user: IUser) {
@@ -72,6 +77,8 @@ export class OrderService {
           { session },
         );
       }
+      const stockProducts: { productId: Types.ObjectId; newStock: number }[] =
+        [];
       const products: IorderProduct[] = await Promise.all(
         cart.products.map(async (P) => {
           const product = await this.productRepo.findOneDocument(
@@ -86,6 +93,10 @@ export class OrderService {
           product.stock = product.stock - P.quantity;
           product.sold += P.quantity;
           await product.save({ session });
+          stockProducts.push({
+            productId: product._id,
+            newStock: product.stock,
+          });
           return {
             productId: product._id,
             quantity: P.quantity,
@@ -114,6 +125,17 @@ export class OrderService {
         },
         { session },
       );
+      this.realTimeGateway.changeProductStock(stockProducts);
+      const notification = await this.notificationRepo.createDocument({
+        userId: user._id,
+        title: notificationHandler('order_created', {
+          orderId: order.orderId,
+        }).title,
+        content: notificationHandler('order_created', {
+          orderId: order.orderId,
+        }).content,
+      });
+      this.realTimeGateway.sendNotification(user._id, notification);
       cart.products = [];
       await cart.save({ session });
       const secondsLeft = getSecondsUntilEndOfDay();
@@ -121,6 +143,7 @@ export class OrderService {
       await redis.expire(`pending_orders`, secondsLeft);
       await redis.expire(`paid_orders`, secondsLeft);
       await session.commitTransaction();
+      this.realTimeGateway.sendNewOrderNotification(order)
       return { message: 'order created', data: { order } };
     } catch (err) {
       if (session.inTransaction()) {

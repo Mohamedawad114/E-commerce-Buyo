@@ -18,7 +18,8 @@ import {
   wishlistModel,
 } from 'src/DB';
 import { Product_Servcies } from './product.service';
-import { Product_Controller, Product_User_Controller } from './controllers';
+import { Product_Controller, ProductUser_Controller } from './controllers';
+import { realTimeGateway } from '../Gateway/gateway';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { Product_Controller, Product_User_Controller } from './controllers';
     Wishlist_Repo,
     Cart_Repo,
     ReviewRepo,
+    realTimeGateway,
   ],
-  controllers: [Product_Controller, Product_User_Controller],
+  controllers: [Product_Controller, ProductUser_Controller],
 })
 export class ProductModule {}
