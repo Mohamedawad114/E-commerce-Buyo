@@ -6,19 +6,11 @@ services:
   # 1) API SERVICE (Your App)
   ###########################################
   Buyo-app:
-    build:
-      target: prod
-<<<<<<< HEAD
-=======
     image: moawad114/buyo-app   # مهم لو هتستخدم repo
-
-    ports:
-      - "5000:3000"
->>>>>>> 77a1e410edde74e852095930961d1a9221b7c6ab
+    expose:
+      - "3000"
     env_file:
       - ./config/prod.env
-    expose:
-      - "3000"  
     networks:
       - prod-net
     deploy:
