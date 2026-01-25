@@ -17,6 +17,5 @@ FROM base as prod
 RUN npm install --only=production
 
 COPY . .
-RUN npm run build
-
+RUN npm install -g @nestjs/cli
 CMD ["npm","run","start"]
