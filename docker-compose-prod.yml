@@ -1,25 +1,18 @@
 
-
 services:
 
   ###########################################
   # 1) API SERVICE (Your App)
   ###########################################
   Buyo-app:
-    image: moawad114/buyo-app:latest   # مهم لو هتستخدم repo
+    image: moawad114/buyo-app:latest
     expose:
       - "3000"
     env_file:
       - ./config/prod.env
     networks:
       - prod-net
-    deploy:
-      replicas: 3                # عدد الحاويات في swarm
-      update_config:             # rolling update
-        parallelism: 1           # تحديث واحدة في كل مرة
-        delay: 10s               # انتظار 10 ثواني بين كل تحديث
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped   # بدل deploy.restart_policy
 
   ###########################################
   # 2) NGINX REVERSE PROXY
@@ -36,10 +29,7 @@ services:
       - Buyo-app
     networks:
       - prod-net
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
 
   ###########################################
   # 3) WATCHTOWER (Auto Deployment)
@@ -49,12 +39,11 @@ services:
     container_name: watchtower-prod
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30       # يفحص كل 30 ثانية عن نسخة جديدة
+    command: --interval 30
     networks:
       - prod-net
-    deploy:
-      replicas: 1
+    restart: unless-stopped
 
 networks:
   prod-net:
-    driver: overlay
+    driver: bridge
