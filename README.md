@@ -69,7 +69,7 @@ This project simulates a real-world e-commerce system with advanced backend conc
 
 - Payment Strategy Pattern (decoupled & extensible)  
 - Stripe Checkout Sessions (secure hosted UI)  
-- Webhook handling  
+- Webhook handling  (with ngrok in development)
 - Stripe Coupons & Refunds integration  
 
 ---
@@ -83,7 +83,8 @@ This project simulates a real-world e-commerce system with advanced backend conc
 
 - **Socket.io:**  
   - Real-time notifications  
-  - Live product updates  
+  - Live product stock updates
+  - room for admin :( create new order) 
 
 ---
 
@@ -154,6 +155,8 @@ This project focuses on:
 Backend Developer – Node.js / NestJS  
 
 ---
+## Swagger Documentation
+ [Swagger Docs](http://localhost:4000/api/docs)
 
 ## 📖 Postman Documentation
 

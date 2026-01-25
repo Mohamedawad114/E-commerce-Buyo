@@ -8,6 +8,13 @@ services:
   Buyo-app:
     build:
       target: prod
+<<<<<<< HEAD
+=======
+    image: moawad114/buyo-app   # مهم لو هتستخدم repo
+
+    ports:
+      - "5000:3000"
+>>>>>>> 77a1e410edde74e852095930961d1a9221b7c6ab
     env_file:
       - ./config/prod.env
     expose:
