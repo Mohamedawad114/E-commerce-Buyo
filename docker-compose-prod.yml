@@ -7,14 +7,11 @@ services:
   ###########################################
   Buyo-app:
     build:
-      context: .
       target: prod
-    image: moawad114/buyo-app:tag   # مهم لو هتستخدم repo
-
-    ports:
-      - "5000:3000"
     env_file:
       - ./config/prod.env
+    expose:
+      - "3000"  
     networks:
       - prod-net
     deploy:
