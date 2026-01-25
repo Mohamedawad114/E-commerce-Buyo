@@ -1,4 +1,4 @@
-version: "3.9"
+
 
 services:
 
@@ -6,7 +6,7 @@ services:
   # 1) API SERVICE (Your App)
   ###########################################
   Buyo-app:
-    image: moawad114/buyo-app   # مهم لو هتستخدم repo
+    image: moawad114/buyo-app:latest   # مهم لو هتستخدم repo
     expose:
       - "3000"
     env_file:
