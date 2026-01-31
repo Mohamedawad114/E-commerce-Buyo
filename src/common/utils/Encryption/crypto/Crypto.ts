@@ -1,26 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import crypto from 'crypto';
 
+const key=process.env.CRYPTO_KEY as string
+const IV=crypto.randomBytes(16)
 @Injectable()
 export class Crypto {
- encryption = (data: string): string => {
-    const buffer = Buffer.from(data);
-    const encrypted = crypto.publicEncrypt(
-      {
-        key: process.env.PUBLICKEY as string,
-        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-      },
-      buffer,
-    );
-    return encrypted.toString('hex');
-  };
-  decryption = (dataencrypted: string): string => {
-      const buffer = Buffer.from(dataencrypted, 'hex');
-      const decrypted = crypto.privateDecrypt({
-          key: process.env.PRIVATEKEY as string,
-          padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-      },buffer)
-      
-      return decrypted.toString('utf-8');
-  }
+
+ encryption=(text:string)=>{
+    const buffer=Buffer.from(key)
+    const cipher=crypto.createCipheriv("aes-256-cbc",buffer,IV)
+    let encrypted:string=cipher.update(text,'utf-8','hex')
+    encrypted +=cipher.final('hex')
+    return IV.toString('hex')+":"+encrypted
+}
+
+
+ decryption=(textencrypt:string)=>{
+const [Ivhex,encrypted]=textencrypt.split(":")
+const Iv=Buffer.from(Ivhex,'hex')
+    const decipher=crypto.createDecipheriv("aes-256-cbc",key,Iv)
+    let decrypted=decipher.update(encrypted,'hex',"utf-8")
+    decrypted+=decipher.final('utf-8')
+    return decrypted
+}
+
+
 }
